@@ -9,5 +9,6 @@ class Role extends Laya.Sprite{
         this.body.loadImages(['war/hero_fly1.png','war/hero_fly2.png']);
         this.body.play();
         this.addChild(this.body);
+        console.log(this.body)
     }
 }
