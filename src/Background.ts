@@ -1,36 +1,48 @@
-// 程序入口
-class Background extends Laya.Sprite{
+/**
+ * 循环滚动的游戏背景
+ */
+class BackGround extends Laya.Sprite {
+    //定义背景1
     private bg1: Laya.Sprite;
+    //定义背景2
     private bg2: Laya.Sprite;
-             width = 480;
-             height = 852;
-    constructor()
-    {   
+
+    constructor() {
         super();
         this.init();
-        
     }
-    init(): void{
-        //create bg1
+
+    init(): void {
+        //创建背景1
         this.bg1 = new Laya.Sprite();
-        this.bg1.loadImage('res/background.png');
+        //加载并显示背景图
+        this.bg1.loadImage("res/background.png");
+        //把背景1放到容器内
         this.addChild(this.bg1);
-        //create bg2
+
+        //创建背景2
         this.bg2 = new Laya.Sprite();
-        this.bg2.loadImage('res/background.png');
-        this.bg2.pos(0,-this.height);
+        //加载并显示背景图
+        this.bg2.loadImage("res/background.png");
+        //更改背景2，放到背景1上面
+        this.bg2.pos(0, -852)
+        //把背景2放到容器内
         this.addChild(this.bg2);
 
-        //create frame loop
-        Laya.timer.frameLoop(1,this,this.onLoop)
+        //创建一个帧循环，更新容器位置
+        Laya.timer.frameLoop(1, this, this.onLoop)
     }
-    onLoop(): void{
+
+    onLoop(): void {
+        //背景容器每帧向下移动1像素
         this.y += 1;
-        if(this.bg1.y + this.y >= this.height){
-            this.bg1.y -= this.height * 2;
+
+        //如果背景图到了下面不可见，立即调整位置到上面循环显示
+        if (this.bg1.y + this.y >= 852) {
+            this.bg1.y -= 852 * 2;
         }
-        if(this.bg2.y + this.y >= this.height){
-            this.bg2.y -= this.height * 2;
+        if (this.bg2.y + this.y >= 852) {
+            this.bg2.y -= 852 * 2;
         }
     }
 }

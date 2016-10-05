@@ -3,37 +3,44 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-// 程序入口
-var Background = (function (_super) {
-    __extends(Background, _super);
-    function Background() {
+/**
+ * 循环滚动的游戏背景
+ */
+var BackGround = (function (_super) {
+    __extends(BackGround, _super);
+    function BackGround() {
         _super.call(this);
-        this.width = 480;
-        this.height = 852;
         this.init();
     }
-    Background.prototype.init = function () {
-        //create bg1
+    BackGround.prototype.init = function () {
+        //创建背景1
         this.bg1 = new Laya.Sprite();
-        this.bg1.loadImage('res/background.png');
+        //加载并显示背景图
+        this.bg1.loadImage("res/background.png");
+        //把背景1放到容器内
         this.addChild(this.bg1);
-        //create bg2
+        //创建背景2
         this.bg2 = new Laya.Sprite();
-        this.bg2.loadImage('res/background.png');
-        this.bg2.pos(0, -this.height);
+        //加载并显示背景图
+        this.bg2.loadImage("res/background.png");
+        //更改背景2，放到背景1上面
+        this.bg2.pos(0, -852);
+        //把背景2放到容器内
         this.addChild(this.bg2);
-        //create frame loop
+        //创建一个帧循环，更新容器位置
         Laya.timer.frameLoop(1, this, this.onLoop);
     };
-    Background.prototype.onLoop = function () {
+    BackGround.prototype.onLoop = function () {
+        //背景容器每帧向下移动1像素
         this.y += 1;
-        if (this.bg1.y + this.y >= this.height) {
-            this.bg1.y -= this.height * 2;
+        //如果背景图到了下面不可见，立即调整位置到上面循环显示
+        if (this.bg1.y + this.y >= 852) {
+            this.bg1.y -= 852 * 2;
         }
-        if (this.bg2.y + this.y >= this.height) {
-            this.bg2.y -= this.height * 2;
+        if (this.bg2.y + this.y >= 852) {
+            this.bg2.y -= 852 * 2;
         }
     };
-    return Background;
+    return BackGround;
 }(Laya.Sprite));
-//# sourceMappingURL=Background.js.map
+//# sourceMappingURL=BackGround.js.map
