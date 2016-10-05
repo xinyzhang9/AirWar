@@ -8,6 +8,7 @@ var Game = (function () {
     }
     Game.prototype.onLoaded = function () {
         var hero = new Role();
+        hero.pos(240, 700);
         Laya.stage.addChild(hero);
     };
     return Game;

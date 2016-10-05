@@ -10,6 +10,7 @@ class Game{
     }
     onLoaded(){
         var hero: Role = new Role();
+        hero.pos(240,700);
         Laya.stage.addChild(hero);
     }
     
