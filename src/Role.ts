@@ -7,8 +7,8 @@ class Role extends Laya.Sprite {
     //define body of airflight
     private body: Laya.Animation;
     //define type of airflight
-    private type: string;
-    //0:hero,1:enimy
+    public type: string;
+    //camp 0:hero,1:enimy
     public camp: number;
     //hitpoints
     public hp: number;
@@ -24,20 +24,21 @@ class Role extends Laya.Sprite {
     public shootTime: number = Laya.Browser.now() + 2000;
     //current action
     public action: string;
-    //if it is bullet
-    public isBullet: boolean = false;
+    //0: normal, 1: bullet, 2: bullet++, 3: hp++
+    public heroType: number = 0;
 
     constructor() {
         super();
     }
 
-    public init(type: string, camp: number, hp: number, speed: number, hitRadius: number): void {
+    public init(type: string, camp: number, hp: number, speed: number, hitRadius: number,heroType: number = 0): void {
         //initialize character's attribute
         this.type = type;
         this.camp = camp;
         this.hp = hp;
         this.speed = speed;
         this.hitRadius = hitRadius;
+        this.heroType = heroType;
 
         //cache shared animation templates
         if(!Role.cached){
@@ -64,6 +65,10 @@ class Role extends Laya.Sprite {
             Laya.Animation.createFrames(['war/enemy3_hit.png'],'enemy3_hit');
             //bullet
             Laya.Animation.createFrames(['war/bullet1.png'],'bullet1_fly');
+            //ufo-01
+            Laya.Animation.createFrames(['war/ufo1.png'],'ufo1_fly');
+            //ufo-02
+            Laya.Animation.createFrames(['war/ufo2.png'],'ufo2_fly');
         }
         if(!this.body){
             //create animation as a body
@@ -81,8 +86,10 @@ class Role extends Laya.Sprite {
         this.playAction("fly");
     }
     onPlayComplete(): void{
+        //if is 'down',hide it
         if(this.action === 'down'){
             this.body.stop();
+            //recycle it at next frame
             this.visible = false;
         }else if(this.action === 'hit'){
             this.playAction('fly');

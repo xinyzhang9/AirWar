@@ -18,16 +18,18 @@ var Role = (function (_super) {
         this.shootInterval = 500;
         //next shoot time
         this.shootTime = Laya.Browser.now() + 2000;
-        //if it is bullet
-        this.isBullet = false;
+        //0: normal, 1: bullet, 2: bullet++, 3: hp++
+        this.heroType = 0;
     }
-    Role.prototype.init = function (type, camp, hp, speed, hitRadius) {
+    Role.prototype.init = function (type, camp, hp, speed, hitRadius, heroType) {
+        if (heroType === void 0) { heroType = 0; }
         //initialize character's attribute
         this.type = type;
         this.camp = camp;
         this.hp = hp;
         this.speed = speed;
         this.hitRadius = hitRadius;
+        this.heroType = heroType;
         //cache shared animation templates
         if (!Role.cached) {
             Role.cached = true;
@@ -53,6 +55,10 @@ var Role = (function (_super) {
             Laya.Animation.createFrames(['war/enemy3_hit.png'], 'enemy3_hit');
             //bullet
             Laya.Animation.createFrames(['war/bullet1.png'], 'bullet1_fly');
+            //ufo-01
+            Laya.Animation.createFrames(['war/ufo1.png'], 'ufo1_fly');
+            //ufo-02
+            Laya.Animation.createFrames(['war/ufo2.png'], 'ufo2_fly');
         }
         if (!this.body) {
             //create animation as a body
@@ -68,8 +74,10 @@ var Role = (function (_super) {
         this.playAction("fly");
     };
     Role.prototype.onPlayComplete = function () {
+        //if is 'down',hide it
         if (this.action === 'down') {
             this.body.stop();
+            //recycle it at next frame
             this.visible = false;
         }
         else if (this.action === 'hit') {
@@ -77,7 +85,7 @@ var Role = (function (_super) {
         }
     };
     Role.prototype.playAction = function (action) {
-        //record current action
+        //record current action!
         this.action = action;
         //play action
         this.body.play(0, true, this.type + '_' + action);
