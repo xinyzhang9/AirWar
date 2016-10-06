@@ -10,6 +10,16 @@ var Role = (function (_super) {
     __extends(Role, _super);
     function Role() {
         _super.call(this);
+        //attack radius
+        this.hitRadius = 0;
+        //shoot type
+        this.shootType = 0;
+        //shoot interval
+        this.shootInterval = 500;
+        //next shoot time
+        this.shootTime = Laya.Browser.now() + 2000;
+        //if it is bullet
+        this.isBullet = false;
     }
     Role.prototype.init = function (type, camp, hp, speed, hitRadius) {
         //initialize character's attribute
@@ -41,17 +51,35 @@ var Role = (function (_super) {
             Laya.Animation.createFrames(['war/enemy3_down1.png', 'war/enemy3_down2.png', 'war/enemy3_down3.png', 'war/enemy3_down4.png', 'war/enemy3_down5.png', 'war/enemy3_down6.png'], 'enemy3_down');
             //enemy3 hit
             Laya.Animation.createFrames(['war/enemy3_hit.png'], 'enemy3_hit');
+            //bullet
+            Laya.Animation.createFrames(['war/bullet1.png'], 'bullet1_fly');
         }
         if (!this.body) {
             //create animation as a body
             this.body = new Laya.Animation();
+            //set animation interval
+            this.body.interval = 50;
             //add body to the container
             this.addChild(this.body);
+            //add complete callback
+            this.body.on('complete', this, this.onPlayComplete);
         }
         //play fly animation
         this.playAction("fly");
     };
+    Role.prototype.onPlayComplete = function () {
+        if (this.action === 'down') {
+            this.body.stop();
+            this.visible = false;
+        }
+        else if (this.action === 'hit') {
+            this.playAction('fly');
+        }
+    };
     Role.prototype.playAction = function (action) {
+        //record current action
+        this.action = action;
+        //play action
         this.body.play(0, true, this.type + '_' + action);
         //get bounds of animation
         var bound = this.body.getBounds();
