@@ -16,49 +16,65 @@ class Game {
     private bulletLevel: number = 0;
     //enemy been hit radius
     private radius: Array<number> = [18,33,80];
+    //role box
+    private roleBox: Laya.Sprite;
+    //game UI
+    private gameInfo: GameInfo;
+
+    private paused = false;
 
     constructor() {
         //initialize width and height
-        Laya.init(480, 852);
+        Laya.init(480, 852, Laya.WebGL);
+        //load image collections
+        Laya.loader.load("res/atlas/war.json", Laya.Handler.create(this, this.onLoaded), null, Laya.Loader.ATLAS)
 
+        //display fps
+        // Laya.Stat.show(0,50);
+    }
+
+    onLoaded() {
         //create background
         var bg: BackGround = new BackGround();
         //add background to stage
         Laya.stage.addChild(bg);
 
-        //load image collections
-        Laya.loader.load("res/atlas/war.json", Laya.Handler.create(this, this.onLoaded), null, Laya.Loader.ATLAS)
-
-        //display fps
-        Laya.Stat.show();
-    }
-
-    onLoaded() {
+        //role box
+        this.roleBox = new Laya.Sprite();
+        Laya.stage.addChild(this.roleBox);
+        //game UI
+        this.gameInfo = new GameInfo();
+        Laya.stage.addChild(this.gameInfo);
         //create a hero
         this.hero = new Role();
-        //set hero position
-        this.hero.init("hero",0,5,0,30);
-        //set hero position
-        this.hero.pos(240,700);
-        //set shoot type
-        this.hero.shootType = 1;
-        //add hero to stage
-        Laya.stage.addChild(this.hero);
-        //add listener to mouse
-        Laya.stage.on('mousemove',this,this.onMouseMove);
+        this.roleBox.addChild(this.hero);
 
-        //create main loop
-        Laya.timer.frameLoop(1,this,this.onLoop);
+        this.restart();
     }
 
     onMouseMove(e: Laya.Event):void{
         this.hero.pos(Laya.stage.mouseX,Laya.stage.mouseY);
     }
+    onKeyDown(e): void{
+        if(e.keyCode === 27){
+            if(this.paused == false){
+                this.paused = true;
+                gameInstance.pause();
+                this.gameInfo.infoLabel.text = 'Game paused.\nPress ESC to resume';
+            }    
+            else{
+                this.paused = false;
+                this.gameInfo.infoLabel.text = '';
+                gameInstance.resume();
+            }
+
+        }
+    }
 
     onLoop():void{
         //traverse all flights, update status
-        for(var i: number = Laya.stage.numChildren-1; i>0; i--){
-            var role: Role = Laya.stage.getChildAt(i) as Role;
+        for(var i: number = this.roleBox.numChildren-1; i>-1; i--){
+            var role: Role = this.roleBox.getChildAt(i) as Role;
             if(role && role.speed){
                 //update position by speed
                 role.y += role.speed;
@@ -89,22 +105,22 @@ class Game {
                         bullet.init('bullet1',role.camp,1,-4-role.shootType-Math.floor(this.level/15),1,1);
                         bullet.pos(role.x + pos[index],role.y - role.hitRadius - 10);
                         //add to stage
-                        Laya.stage.addChild(bullet);
+                        this.roleBox.addChild(bullet);
                     }
                 }
             }
         }
         //collision detect
-        var n: number = Laya.stage.numChildren;
-        for(var i: number = n-1; i > 0; i--){
+        var n: number = this.roleBox.numChildren;
+        for(var i: number = n-1; i > -1; i--){
             //get role 1
-            var role1: Role = Laya.stage.getChildAt(i) as Role;
+            var role1: Role = this.roleBox.getChildAt(i) as Role;
             //if role is dead
             if(role1.hp < 1) continue;
-            for(var j: number = i-1; j > 0; j--){
+            for(var j: number = i-1; j > -1; j--){
                 if(!role1.visible) continue;
                 //get role 2
-                var role2: Role = Laya.stage.getChildAt(j) as Role;
+                var role2: Role = this.roleBox.getChildAt(j) as Role;
                 //if role2 is alive and has different camp
                 if(role2.hp > 0 && role1.camp != role2.camp){
                     //compute collision area
@@ -116,10 +132,14 @@ class Game {
                         this.lostHp(role2,1);
                         //increase score
                         this.score++;
+                        //display UI
+                        this.gameInfo.score(this.score);
                         //if score > levelUpScore, then level up
                         if(this.score > this.levelUpScore){
                             //level up
                             this.level++;
+                            //display on UI
+                            this.gameInfo.level(this.level);
                             //increase levelUpScore
                             this.levelUpScore += this.level * 5;
                         }
@@ -130,6 +150,10 @@ class Game {
         //if hero is dead, stop the game
         if(this.hero.hp < 1){
             Laya.timer.clear(this,this.onLoop);
+            //display info
+            this.gameInfo.infoLabel.text = 'Gameover, your score is: '+this.score+'\nClick here to restart!';
+            //add restart event listener
+            this.gameInfo.infoLabel.once('click',this,this.restart);
         }
         //higher level, less interval to create enemy
         var cutTime: number = this.level < 30? this.level * 2 : 60;
@@ -153,6 +177,52 @@ class Game {
             this.createEnemy(2,1,1 + speedUp, 10 + hpUp * 6);
         }        
     }
+
+    restart(): void{
+        //reset game data
+        this.score = 0;
+        this.level = 0;
+        this.levelUpScore = 10;
+        this.bulletLevel = 0;
+        this.gameInfo.reset();
+
+        //reset role
+        this.hero.init('hero',0,5,0,30);
+        //set hero position
+        this.hero.pos(240,700);
+        //set shoot type
+        this.hero.shootType = 1;
+        //reset shoot interval
+        this.hero.shootInterval = 500;
+        //show role
+        this.hero.visible = true;
+
+        for(var i: number = this.roleBox.numChildren - 1; i > -1; i--){
+            var role: Role = this.roleBox.getChildAt(i) as Role;
+            if(role != this.hero){
+                role.removeSelf();
+                //reset attribute before recycle
+                role.visible = true;
+                //recycle to object pool
+                Laya.Pool.recover('role',role);
+
+            }
+        }
+        this.resume();
+    }
+    public pause(): void{
+        //stop main loop
+        Laya.timer.clear(this, this.onLoop);
+        //remove mouse listener
+        Laya.stage.off('mousemove',this,this.onMouseMove);
+    }
+    public resume(): void{
+        //create main loop
+        Laya.timer.frameLoop(1,this, this.onLoop);
+        //add mouse listener
+        Laya.stage.on('mousemove', this, this.onMouseMove);
+        Laya.stage.on(laya.events.Event.KEY_DOWN,this,this.onKeyDown);
+    }
     lostHp(role: Role, lostHp: number): void{
         role.hp -= lostHp;
         if(role.heroType === 2){ //bulletLevel++
@@ -167,6 +237,8 @@ class Game {
             if(this.hero.hp > 10){
                 this.hero.hp = 10;
             }
+            //display hero hp
+            this.gameInfo.hp(this.hero.hp);
             //hide item
             role.visible = false;
         }else if(role.hp > 0){
@@ -186,17 +258,16 @@ class Game {
                     //initialize pos
                     item.pos(role.x,role.y);
                     //add to stage
-                    Laya.stage.addChild(item);
+                    this.roleBox.addChild(item);
                 }
             }
         }
+        //display hero hp
+        if(role == this.hero){
+            this.gameInfo.hp(role.hp);
+        }
     }
-    //enemy hitpoints table
-    // private hps: Array<number> = [1,2,10];
-    //enemy speed table
-    // private speeds: Array<number> = [3,2,1];
-    //enemy radius table
-    // private radius: Array<number> = [18,33,80];
+
 
     createEnemy(type: number, num: number, speed: number, hp: number): void{
         for(var i: number = 0; i < num; i++){            
@@ -207,10 +278,10 @@ class Game {
             //random position
             enemy.pos(Math.random()*400+40,-Math.random()*200-100);
             //add to stage
-            Laya.stage.addChild(enemy);
+            this.roleBox.addChild(enemy);
         }
     }
 }
 
 //start game
-new Game();
+var gameInstance: Game = new Game();
