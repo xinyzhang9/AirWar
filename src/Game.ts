@@ -27,7 +27,14 @@ class Game {
         //initialize width and height
         Laya.init(480, 852, Laya.WebGL);
         //load image collections
-        Laya.loader.load("res/atlas/war.json", Laya.Handler.create(this, this.onLoaded), null, Laya.Loader.ATLAS)
+        Laya.loader.load("res/atlas/war.json", Laya.Handler.create(this, this.onLoaded), null, Laya.Loader.ATLAS);
+        Laya.loader.load([{url:"res/sound/achievement.mp3",type:"sound"},
+                            {url:"res/sound/bullet.mp3",type:"sound"},
+                            {url:"res/sound/enemy1_down.mp3",type:"sound"},
+                            {url:"res/sound/enemy2_down.mp3",type:"sound"},
+                            {url:"res/sound/enemy3_down.mp3",type:"sound"},
+                            {url:"res/sound/enemy3_out.mp3",type:"sound"},
+                            {url:"res/sound/game_over.mp3",type:"sound"}]);
 
         //display fps
         // Laya.Stat.show(0,50);
@@ -107,6 +114,8 @@ class Game {
                         //add to stage
                         this.roleBox.addChild(bullet);
                     }
+                    //bullet sound
+                    Laya.SoundManager.playSound('res/sound/bullet.mp3');
                 }
             }
         }
@@ -149,6 +158,8 @@ class Game {
         }
         //if hero is dead, stop the game
         if(this.hero.hp < 1){
+            //play sound
+            Laya.SoundManager.playSound('res/sound/game_over.mp3');
             Laya.timer.clear(this,this.onLoop);
             //display info
             this.gameInfo.infoLabel.text = 'Gameover, your score is: '+this.score+'\nClick here to restart!';
@@ -174,6 +185,7 @@ class Game {
         }
         //create boss
         if(Laya.timer.currFrame % (900 - cutTime * 4) === 0){
+            Laya.SoundManager.playSound("res/sound/enemy3_out.mp3");
             this.createEnemy(2,1,1 + speedUp, 10 + hpUp * 6);
         }        
     }
@@ -226,6 +238,8 @@ class Game {
     lostHp(role: Role, lostHp: number): void{
         role.hp -= lostHp;
         if(role.heroType === 2){ //bulletLevel++
+            //play sound
+            Laya.SoundManager.playSound('res/sound/achievement.mp3');
             this.bulletLevel++ ;
             this.hero.shootType = Math.min(Math.floor(this.bulletLevel/2)+1,4);
             this.hero.shootInterval = 500 - 20 * (this.bulletLevel > 20 ? 20: this.bulletLevel);
@@ -233,6 +247,8 @@ class Game {
             //hide item
             role.visible = false;
         }else if(role.heroType === 3){ //hp++
+            //play sound
+            Laya.SoundManager.playSound('res/sound/achievement.mp3');
             this.hero.hp++;
             if(this.hero.hp > 10){
                 this.hero.hp = 10;
@@ -248,7 +264,9 @@ class Game {
             if(role.heroType > 0){
                 role.visible = false;
             }else{
-                role.playAction('down');
+                //play sound
+                Laya.SoundManager.playSound('res/sound/'+role.type+'_down.mp3');
+                role.playAction('down');          
                 //beat boss to get hp++ or bullet++
                 if(role.type == 'enemy3'){
                     var type: number = Math.random() < 0.7? 2: 3;
