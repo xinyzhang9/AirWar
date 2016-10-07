@@ -13,6 +13,7 @@ class GameInfo extends ui.GameInfoUI {
         this.hp(5);
         this.level(0);
         this.score(0);
+        
     }
     onPauseBtnClick(e: Laya.Event): void{
         e.stopPropagation();
@@ -36,5 +37,9 @@ class GameInfo extends ui.GameInfoUI {
     //display score
     public score(value: number): void{
         this.scoreLabel.text = 'Score:' + value;
+    }
+    //best score
+    public bestScore(value: number): void{
+        this.bestScoreLabel.text = 'Best:' + value;
     }
 }

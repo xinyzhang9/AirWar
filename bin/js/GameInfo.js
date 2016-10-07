@@ -43,6 +43,10 @@ var GameInfo = (function (_super) {
     GameInfo.prototype.score = function (value) {
         this.scoreLabel.text = 'Score:' + value;
     };
+    //best score
+    GameInfo.prototype.bestScore = function (value) {
+        this.bestScoreLabel.text = 'Best:' + value;
+    };
     return GameInfo;
 }(ui.GameInfoUI));
 //# sourceMappingURL=GameInfo.js.map

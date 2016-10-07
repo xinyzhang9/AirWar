@@ -16,6 +16,7 @@ var Game = (function () {
         //enemy been hit radius
         this.radius = [18, 33, 80];
         this.paused = false;
+        this.bestScore = 0;
         //initialize width and height
         Laya.init(480, 852, Laya.WebGL);
         //load image collections
@@ -29,6 +30,10 @@ var Game = (function () {
             { url: "res/sound/game_over.mp3", type: "sound" }]);
         //display fps
         // Laya.Stat.show(0,50);
+        //adapt screen
+        Laya.stage.scaleMode = 'showall';
+        Laya.stage.alignH = 'center';
+        // Laya.stage.screenMode = 'vertical';
     }
     Game.prototype.onLoaded = function () {
         //create background
@@ -145,6 +150,10 @@ var Game = (function () {
         }
         //if hero is dead, stop the game
         if (this.hero.hp < 1) {
+            //update bestScore
+            if (this.score > this.bestScore) {
+                localStorage.setItem('bestScore', this.score.toString());
+            }
             //play sound
             Laya.SoundManager.playSound('res/sound/game_over.mp3');
             Laya.timer.clear(this, this.onLoop);
@@ -181,6 +190,15 @@ var Game = (function () {
         this.level = 0;
         this.levelUpScore = 10;
         this.bulletLevel = 0;
+        this.bestScore = 0;
+        if (localStorage.getItem('bestScore')) {
+            this.bestScore = parseInt(localStorage.getItem('bestScore'));
+            this.gameInfo.bestScore(this.bestScore);
+            console.log(localStorage.getItem('bestScore'));
+        }
+        else {
+            this.gameInfo.bestScore(0);
+        }
         this.gameInfo.reset();
         //reset role
         this.hero.init('hero', 0, 5, 0, 30);
